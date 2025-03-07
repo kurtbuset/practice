@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import { Student } from "../entity/Student";
+import { Employee } from "../entity/Employee";
+import { Department } from "../entity/Department";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -8,18 +9,18 @@ export const AppDataSource = new DataSource({
   port: 3306,
   username: "root",
   password: "password",
-  database: "grading-sys-typeorm-simple-crud",
+  database: "employee_management",
   synchronize: true,
   logging: false,
-  entities: [Student],
+  entities: [Employee, Department],
   migrations: [],
   subscribers: [],
 });
 
 AppDataSource.initialize()
   .then(() => {
-    console.log("Data Source has been initialized!")
+    console.log("Data Source has been initialized!");
   })
   .catch((err) => {
-    console.error("Error during Data Source initialization:", err)
+    console.error("Error during Data Source initialization:", err);
   });
