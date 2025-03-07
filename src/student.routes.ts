@@ -7,13 +7,15 @@ const employeeRouter = express.Router();
 
 employeeRouter.get("/employees", async (req: Request, res: Response) => {
   try {
-    const employees = await AppDataSource.manager.find(Employee);
+    const employees = await AppDataSource.getRepository(Employee).find({
+      relations: ["department"],
+    });
 
     if (employees.length === 0) {
       return res.status(404).json({ message: "No Employees found" });
     }
 
-    return res.status(200).json({ message: "List of employees", employees });
+    return res.status(200).json(employees);
   } catch (error) {
     console.error("Error fetching employees:", error);
     return res.status(500).json({ error: "Internal server error" });
