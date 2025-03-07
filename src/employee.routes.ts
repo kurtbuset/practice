@@ -229,11 +229,6 @@ const createSchema = Joi.object({
   departmentId: Joi.number().required()
 });
 
-const updateSchema = Joi.object({
-  name: Joi.string().required(),
-  position: Joi.string().required(),
-  salary: Joi.number().required(),
-  departmentId: Joi.number().required(),
-})
+
 
 export default employeeRouter;
