@@ -3,7 +3,31 @@ import { Employee } from "./entity/Employee";
 import Joi from "joi";
 
 import express, { Request, Response } from "express";
-const employeeRouter = express.Router();
+const employeeRouter = express.Router(); 
+
+employeeRouter.get("/employee/:id", async (req: Request, res: Response) => {
+  try {
+    const employeeID = Number(req.params.id);
+
+    if (isNaN(employeeID)) {
+      return res.status(400).json({ msg: "invalid employees id" });
+    }
+
+    const employee = await AppDataSource.manager.findOneBy(employeeID, {
+      id: employeeID,
+    });
+
+    if (!employeeID) {
+      return res.status(404).json({ msg: `employee id: ${employeeID} cant be found` });
+    }
+
+    return res.status(200).json({ msg: "employees found", employeeID });
+  } catch (err) {
+    console.error("Error fetching employee:", err);
+    return res.status(500).json({ msg: "Internal server error" });
+  }
+});
+
 
 employeeRouter.post('/api/employees', (req: Request, res: Response) => {
   try{
