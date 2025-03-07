@@ -6,7 +6,7 @@ import Joi from "joi";
 import express, { Request, Response } from "express";
 const employeeRouter = express.Router();
 
-
+// case 2
 employeeRouter.get("/api/employees", async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
@@ -36,29 +36,82 @@ employeeRouter.get("/api/employees", async (req: Request, res: Response) => {
 });
 
 
+// case 1
 employeeRouter.post("/api/employees", async (req: Request, res: Response) => {
-  const { error, value } = createSchema.validate(req.body, {
-    abortEarly: false,
-  });
-
-  if (error) {
-    return res
-      .status(400)
-      .json({ error: error.details.map((x) => x.message) });
+  try{
+    const { error, value } = createSchema.validate(req.body, {
+      abortEarly: false,
+    });
+  
+    if (error) {
+      return res
+        .status(400)
+        .json({ error: error.details.map((x) => x.message) });
+    }
+  
+    const employeeRepo = AppDataSource.getRepository(Employee);
+    const departmentRepo = AppDataSource.getRepository(Department);
+  
+    const { name, position, departmentId } = value;
+  
+    const department = await departmentRepo.findOne({ where: { id: departmentId } });
+    if (!department) return res.status(404).json({ message: "Department not found" });
+  
+    const newEmployee = employeeRepo.create({ name, position, department });
+    await employeeRepo.save(newEmployee);
+    res.status(201).json(newEmployee);
   }
-
-  const employeeRepo = AppDataSource.getRepository(Employee);
-  const departmentRepo = AppDataSource.getRepository(Department);
-
-  const { name, position, departmentId } = value;
-
-  const department = await departmentRepo.findOne({ where: { id: departmentId } });
-  if (!department) return res.status(404).json({ message: "Department not found" });
-
-  const newEmployee = employeeRepo.create({ name, position, department });
-  await employeeRepo.save(newEmployee);
-  res.status(201).json(newEmployee);
+  catch(error){
+    console.error("Error adding employee:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 });
+
+// case 3
+employeeRouter.put('/api/employees/:id/salary', (req: Request, res: Response) => {
+  try{
+    
+  }
+  catch(error){
+    console.error("Error updating employee:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+})
+
+// case 4
+employeeRouter.delete('/api/employees/:id', async (req: Request, res: Response) => {
+  try{
+    const { id } = req.params
+    const employeeRepo = AppDataSource.getRepository(Employee)
+
+    const employee = await employeeRepo.findOneBy({
+      id: Number(id)
+    })  
+
+    if(!employee) return res.status(404).json({ message: "Employee not found" });
+
+    employee.isActive = false
+
+    await employeeRepo.save(employee)
+    
+    return res.status(201).json({ msg: `employee ${employee} set to false`, employee});
+  }
+  catch(error){
+    console.error("Error updating employee:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+})
+
+// case 5
+employeeRouter.get('/api/employees/', async (req: Request, res: Response) => {
+  try{
+
+  }
+  catch(error){
+    
+  }
+})
+
 
 
 const createSchema = Joi.object({
