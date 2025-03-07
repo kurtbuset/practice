@@ -134,27 +134,19 @@ studentRouter.put("/Students/:id", async (req: Request, res: Response) => {
   }
 });
 
-//
-studentRouter.delete("/student/:id", async (req: Request, res: Response) => {
+// delete
+userRouter.get("/api/employees", async (req: Request, res: Response) => {
   try {
-    const studentRepository = AppDataSource.getRepository(Student);
-    const studentId = Number(req.params.id);
+    const EmployeeRepository = AppDataSource.getRepository(User);
+    const activeEmployees = await EmployeeRepository.find({ where: { isActive: true } });
 
-    if (isNaN(studentId)) {
-      return res.status(400).json({ error: "Invalid student ID" });
+    if (activeEmployees.length === 0) {
+      return res.status(404).json({ message: "No active employees found" });
     }
 
-    const student = await studentRepository.findOneBy({ id: studentId });
-
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
-
-    await studentRepository.remove(student);
-
-    res.status(200).json({ message: "Student has been removed" });
-  } catch (err) {
-    console.error("Error deleting student:", err);
+    return res.status(200).json({ message: "List of active employees", employees: activeEmployees });
+  } catch (error) {
+    console.error("Error fetching active employees:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 });
