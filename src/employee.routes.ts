@@ -70,7 +70,7 @@ employeeRouter.post("/api/employees", async (req: Request, res: Response) => {
 // case 3
 employeeRouter.put('/api/employees/:id/salary', (req: Request, res: Response) => {
   try{
-    
+
   }
   catch(error){
     console.error("Error updating employee:", error);
@@ -102,13 +102,27 @@ employeeRouter.delete('/api/employees/:id', async (req: Request, res: Response) 
   }
 })
 
-// case 5
-employeeRouter.get('/api/employees/', async (req: Request, res: Response) => {
+// case 7
+employeeRouter.get('/api/employees/:id/tenure', async (req: Request, res: Response) => {
   try{
+    const employeeRepo = AppDataSource.getRepository(Employee)
+    const employee = await employeeRepo.findOneBy({
+      id: Number(req.params.id)
+    })
 
+    if(!employee) return res.status(404).json({ message: "Employee not found" });
+
+    const hireDate = new Date(employee.hireDate);
+    const currentDate = new Date();
+    const yearsOfService = currentDate.getFullYear() - hireDate.getFullYear();
+
+    // const hoursOfService = Math.floor((currentDate.getTime() - hireDate.getTime()) / (1000 * 60 * 60));
+
+    return res.json({employeeId: employee.id, name: employee.name, yearsOfService: yearsOfService})
   }
   catch(error){
-    
+    console.error("Error updating employee:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 })
 
