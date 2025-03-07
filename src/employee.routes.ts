@@ -25,4 +25,34 @@ employeeRouter.get("/api/employees", async (req: Request, res: Response) => {
 });
 
 
+employeeRouter.post("/api/employees", async (req: Request, res: Response) => {
+  const { error, value } = createSchema.validate(req.body, {
+    abortEarly: false,
+  });
+
+  if (error) {
+    return res
+      .status(400)
+      .json({ error: error.details.map((x) => x.message) });
+  }
+
+  const employeeRepo = AppDataSource.getRepository(Employee);
+  const departmentRepo = AppDataSource.getRepository(Department);
+
+  const { name, position, departmentId } = value;
+  const department = await departmentRepo.findOne({ where: { id: departmentId } });
+  if (!department) return res.status(404).json({ message: "Department not found" });
+
+  const newEmployee = employeeRepo.create({ name, position, department });
+  await employeeRepo.save(newEmployee);
+  res.status(201).json(newEmployee);
+});
+
+
+const createSchema = Joi.object({
+  name: Joi.string().required(),
+  position: Joi.string().required(),
+  department: Joi.number().required()
+});
+
 export default employeeRouter;
