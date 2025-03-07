@@ -1,10 +1,10 @@
 import express from 'express'
-import studentRouter from './student.routes'
+import employeeRouter from './employee.routes'
 const app = express()
 
 app.use(express.json())
 
-app.use('', studentRouter)
+app.use('', employeeRouter)
 
 
 app.listen(3000, () => {
