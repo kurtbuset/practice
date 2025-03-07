@@ -127,11 +127,46 @@ employeeRouter.get('/api/employees/:id/tenure', async (req: Request, res: Respon
 })
 
 
+// case 8
+employeeRouter.put('/api/employees/:id/transfer', async (req: Request, res: Response) => {
+  try{
+    const employeeRepo = AppDataSource.getRepository(Employee)
+    const departmentRepo = AppDataSource.getRepository(Department)
+    
+    const employee = await employeeRepo.findOneBy({
+      id: Number(req.params.id)
+    })
+
+    if(!employee) return res.status(404).json({ message: "Employee not found" });
+
+    const { departmentId } = req.body
+    
+    const departmentExist = await departmentRepo.findOneBy({
+      id: departmentId
+    })
+
+    if(!departmentExist) return res.status(404).json({ message: "Department not found" });
+
+    employee.department = departmentId
+
+    await employeeRepo.save(employee)
+
+    return res.status(200).json({msg: `Employee ${employee.id} updated successfully`, data: employee})
+    
+  }
+  catch(error){
+    console.error("Error updating employee:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+})
+
+
 
 const createSchema = Joi.object({
   name: Joi.string().required(),
   position: Joi.string().required(),
   departmentId: Joi.number().required()
 });
+
 
 export default employeeRouter;
