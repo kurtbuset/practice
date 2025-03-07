@@ -163,17 +163,29 @@ employeeRouter.put('/api/employees/:id/transfer', async (req: Request, res: Resp
   }
 })
 
-// case 10
+// case 10 (automatically deactivating employees every midnight)
 cron.schedule("0 0 * * *", async () => {
   try {
     const employeeRepo = AppDataSource.getRepository(Employee);
     const sixMonthsAgo = subMonths(new Date(), 6);
 
-    const deleteResult = await employeeRepo.delete({ hireDate: LessThan(sixMonthsAgo) });
+    const employees = await employeeRepo.find({ 
+      where: { hireDate: LessThan(sixMonthsAgo), isActive: true }
+    });
 
-    console.log(`Deleted ${deleteResult.affected} inactive employees.`);
+    if (employees.length === 0) {
+      console.log("No employees to deactivate.");
+      return;
+    }
+
+    for (const employee of employees) {
+      employee.isActive = false;
+      await employeeRepo.save(employee);
+    }
+
+    console.log(`Deactivated ${employees.length} employees.`);
   } catch (error) {
-    console.error("Error deleting inactive employees:", error);
+    console.error("Error deactivating employees:", error);
   }
 });
 
