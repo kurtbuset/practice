@@ -5,25 +5,39 @@ import Joi from "joi";
 import express, { Request, Response } from "express";
 const employeeRouter = express.Router(); 
 
-employeeRouter.get("/employee/:id", async (req: Request, res: Response) => {
+employeeRouter.get("/api/employees/:id/tenure", async (req: Request, res: Response) => {
   try {
     const employeeID = Number(req.params.id);
 
+   
     if (isNaN(employeeID)) {
-      return res.status(400).json({ msg: "invalid employees id" });
+      return res.status(400).json({ msg: "Invalid employee ID" });
     }
 
-    const employee = await AppDataSource.manager.findOneBy(employeeID, {
-      id: employeeID,
+   
+    const employee = await AppDataSource.manager.findOne(Employee, {
+      where: { id: employeeID },
     });
 
-    if (!employeeID) {
-      return res.status(404).json({ msg: `employee id: ${employeeID} cant be found` });
+   
+    if (!employee) {
+      return res.status(404).json({ msg: `Employee with ID: ${employeeID} not found` });
     }
 
-    return res.status(200).json({ msg: "employees found", employeeID });
+  
+    const hireDate = new Date(employee.hireDate);
+    const currentDate = new Date();
+    const tenureInMilliseconds = currentDate.getTime() - hireDate.getTime();
+    const tenureInYears = Math.floor(tenureInMilliseconds / (1000 * 60 * 60 * 24 * 365));
+
+ 
+    return res.status(200).json({
+      msg: "Employee tenure calculated successfully",
+      employeeID: employeeID,
+      tenureInYears: tenureInYears,
+    });
   } catch (err) {
-    console.error("Error fetching employee:", err);
+    console.error("Error fetching employee tenure:", err);
     return res.status(500).json({ msg: "Internal server error" });
   }
 });
