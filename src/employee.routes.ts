@@ -35,39 +35,31 @@ employeeRouter.get("/api/employees", async (req: Request, res: Response) => {
   }
 });
 
-employeeRouter.put("/employees/:id/salary", isAuthorized(['HR']), async (req: Request, res: Response) => {
+employeeRouter.get("/employees/search", async (req: Request, res: Response) => {
   try {
-    const employeeID = Number(req.params.id);
-    const { salary } = req.body;
+    const searchTerm = req.query.name as string;
 
-    if (isNaN(employeeID)) {
-      return res.status(400).json({ msg: "Invalid Employee ID" });
+ 
+    if (!searchTerm || typeof searchTerm !== 'string') {
+      return res.status(400).json({ msg: "Invalid search term" });
     }
 
-    if (typeof salary !== 'number' || salary <= 0) {
-      return res.status(400).json({ msg: "Invalid salary amount" });
-    }
-
-    const employee = await AppDataSource.manager.findOneBy(Employee, {
-      id: employeeID,
+    const employees = await AppDataSource.manager.find(Employee, {
+      where: {
+        name: (`%${searchTerm}%`), //
+      },
     });
 
-    // Check if the employee exists
-    if (!employee) {
-      return res.status(404).json({ msg: `Employee with ID: ${employeeID} not found` });
+    if (employees.length === 0) {
+      return res.status(404).json({ msg: `No employees found with name containing: ${searchTerm}` });
     }
 
-
-    employee.salary = salary;
-    await AppDataSource.manager.save(employee);
-
-    return res.status(200).json({ msg: "Employee salary updated successfully", employee });
+    return res.status(200).json({ msg: "Employees found", employees });
   } catch (err) {
-    console.error("Error updating employee salary:", err);
+    console.error("Error searching employees:", err);
     return res.status(500).json({ msg: "Internal server error" });
   }
 });
-
 employeeRouter.post("/api/employees", async (req: Request, res: Response) => {
   const { error, value } = createSchema.validate(req.body, {
     abortEarly: false,
