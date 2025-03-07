@@ -40,6 +40,7 @@ employeeRouter.post("/api/employees", async (req: Request, res: Response) => {
   const departmentRepo = AppDataSource.getRepository(Department);
 
   const { name, position, departmentId } = value;
+
   const department = await departmentRepo.findOne({ where: { id: departmentId } });
   if (!department) return res.status(404).json({ message: "Department not found" });
 
@@ -52,7 +53,7 @@ employeeRouter.post("/api/employees", async (req: Request, res: Response) => {
 const createSchema = Joi.object({
   name: Joi.string().required(),
   position: Joi.string().required(),
-  department: Joi.number().required()
+  departmentId: Joi.number().required()
 });
 
 export default employeeRouter;
