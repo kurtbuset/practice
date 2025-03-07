@@ -82,7 +82,6 @@ employeeRouter.put('/api/employees/:id/salary', (req: Request, res: Response) =>
 })
 
 // case 4
-
 employeeRouter.delete("/api/employees/:id", async (req: Request, res: Response) => {
   try {
     const EmployeeRepository = AppDataSource.getRepository(Employee);
@@ -186,7 +185,7 @@ cron.schedule("0 0 * * *", async () => {
       employee.isActive = false;
       await employeeRepo.save(employee);
     }
-    
+
     console.log(`Deactivated ${employees.length} employees.`);
   } catch (error) {
     console.error("Error deactivating employees:", error);
