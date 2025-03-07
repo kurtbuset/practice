@@ -82,31 +82,28 @@ employeeRouter.put('/api/employees/:id/salary', (req: Request, res: Response) =>
 })
 
 // case 4
+employeeRouter.delete('/api/employees/:id', async (req: Request, res: Response) => {
+  try{
+    const { id } = req.params
+    const employeeRepo = AppDataSource.getRepository(Employee)
 
-employeeRouter.delete("/api/employees/:id", async (req: Request, res: Response) => {
-  try {
-    const EmployeeRepository = AppDataSource.getRepository(Employee);
-    const employeeId = Number(req.params.id);
+    const employee = await employeeRepo.findOneBy({
+      id: Number(id)
+    })  
 
-    if (isNaN(employeeId)) {
-      return res.status(400).json({ error: "Invalid Employee ID" });
-    }
+    if(!employee) return res.status(404).json({ message: "Employee not found" });
 
-    const employee = await EmployeeRepository.findOneBy({ id: employeeId });
+    employee.isActive = false
 
-    if (!employee) {
-      return res.status(404).json({ message: "Employee not found" });
-    }
-
-    employee.isActive = false;
-    await EmployeeRepository.save(employee);
-
-    res.status(200).json({ message: "Employee has been marked as inactive" });
-  } catch (err) {
-    console.error("Error soft-deleting employee:", err);
+    await employeeRepo.save(employee)
+    
+    return res.status(201).json({ msg: `employee ${employee} set to false`, employee});
+  }
+  catch(error){
+    console.error("Error updating employee:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
-});
+})
 
 // case 7
 employeeRouter.get('/api/employees/:id/tenure', async (req: Request, res: Response) => {
