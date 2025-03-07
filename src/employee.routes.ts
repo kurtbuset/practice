@@ -9,15 +9,26 @@ const employeeRouter = express.Router();
 
 employeeRouter.get("/api/employees", async (req: Request, res: Response) => {
   try {
-    const employees = await AppDataSource.getRepository(Employee).find({
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = 10; 
+    const skip = (page - 1) * limit;
+
+    const [employees, total] = await AppDataSource.getRepository(Employee).findAndCount({
       relations: ["department"],
+      take: limit,
+      skip: skip
     });
 
     if (employees.length === 0) {
       return res.status(404).json({ message: "No Employees found" });
     }
 
-    return res.status(200).json(employees);
+    return res.status(200).json({
+      employees,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    });
   } catch (error) {
     console.error("Error fetching employees:", error);
     return res.status(500).json({ error: "Internal server error" });
