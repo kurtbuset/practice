@@ -82,28 +82,31 @@ employeeRouter.put('/api/employees/:id/salary', (req: Request, res: Response) =>
 })
 
 // case 4
-employeeRouter.delete('/api/employees/:id', async (req: Request, res: Response) => {
-  try{
-    const { id } = req.params
-    const employeeRepo = AppDataSource.getRepository(Employee)
 
-    const employee = await employeeRepo.findOneBy({
-      id: Number(id)
-    })  
+employeeRouter.delete("/api/employees/:id", async (req: Request, res: Response) => {
+  try {
+    const EmployeeRepository = AppDataSource.getRepository(Employee);
+    const employeeId = Number(req.params.id);
 
-    if(!employee) return res.status(404).json({ message: "Employee not found" });
+    if (isNaN(employeeId)) {
+      return res.status(400).json({ error: "Invalid Employee ID" });
+    }
 
-    employee.isActive = false
+    const employee = await EmployeeRepository.findOneBy({ id: employeeId });
 
-    await employeeRepo.save(employee)
-    
-    return res.status(201).json({ msg: `employee ${employee} set to false`, employee});
-  }
-  catch(error){
-    console.error("Error updating employee:", error);
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
+    employee.isActive = false;
+    await EmployeeRepository.save(employee);
+
+    res.status(200).json({ message: "Employee has been marked as inactive" });
+  } catch (err) {
+    console.error("Error soft-deleting employee:", err);
     return res.status(500).json({ error: "Internal server error" });
   }
-})
+});
 
 // case 7
 employeeRouter.get('/api/employees/:id/tenure', async (req: Request, res: Response) => {
@@ -167,6 +170,7 @@ employeeRouter.put('/api/employees/:id/transfer', async (req: Request, res: Resp
 cron.schedule("0 0 * * *", async () => {
   try {
     const employeeRepo = AppDataSource.getRepository(Employee);
+      
     const sixMonthsAgo = subMonths(new Date(), 6);
 
     const employees = await employeeRepo.find({ 
@@ -182,7 +186,7 @@ cron.schedule("0 0 * * *", async () => {
       employee.isActive = false;
       await employeeRepo.save(employee);
     }
-
+    
     console.log(`Deactivated ${employees.length} employees.`);
   } catch (error) {
     console.error("Error deactivating employees:", error);
