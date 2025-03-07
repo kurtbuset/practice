@@ -71,7 +71,7 @@ employeeRouter.post("/api/employees", async (req: Request, res: Response) => {
 });
 
 // case 3
-employeeRouter.put('/api/employees/:id/salary', (req: Request, res: Response) => {
+employeeRouter.put('/api/employees/:id/salary', async(req: Request, res: Response) => {
   try{
     const EmployeeRepository = AppDataSource.getRepository(Employee);
     const EmployeeID = Number(req.params.id);
