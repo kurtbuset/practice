@@ -5,6 +5,21 @@ import Joi from "joi";
 import express, { Request, Response } from "express";
 const employeeRouter = express.Router();
 
+employeeRouter.get("/employees", async (req: Request, res: Response) => {
+  try {
+    const employees = await AppDataSource.manager.find(Employee);
+
+    if (employees.length === 0) {
+      return res.status(404).json({ message: "No Employees found" });
+    }
+
+    return res.status(200).json({ message: "List of employees", employees });
+  } catch (error) {
+    console.error("Error fetching employees:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 employeeRouter.post('/api/employees', (req: Request, res: Response) => {
   try{
     const { error, value } = createSchema.validate(req.body, {
