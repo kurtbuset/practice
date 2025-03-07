@@ -46,7 +46,7 @@ employeeRouter.get("/employees/search", async (req: Request, res: Response) => {
 
     const employees = await AppDataSource.manager.find(Employee, {
       where: {
-        name: (`%${searchTerm}%`), //
+        name:  (`%${searchTerm}%`), //
       },
     });
 
