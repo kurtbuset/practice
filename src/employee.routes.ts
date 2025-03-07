@@ -2,8 +2,11 @@ import { AppDataSource } from "./_helpers/data-source";
 import { Employee } from "./entity/Employee";
 import { Department } from "./entity/Department";
 import Joi from "joi";
+import cron from "node-cron";
+import { subMonths } from "date-fns";
 
 import express, { Request, Response } from "express";
+import { LessThan } from "typeorm";
 const employeeRouter = express.Router();
 
 // case 2
@@ -160,6 +163,19 @@ employeeRouter.put('/api/employees/:id/transfer', async (req: Request, res: Resp
   }
 })
 
+// case 10
+cron.schedule("0 0 * * *", async () => {
+  try {
+    const employeeRepo = AppDataSource.getRepository(Employee);
+    const sixMonthsAgo = subMonths(new Date(), 6);
+
+    const deleteResult = await employeeRepo.delete({ hireDate: LessThan(sixMonthsAgo) });
+
+    console.log(`Deleted ${deleteResult.affected} inactive employees.`);
+  } catch (error) {
+    console.error("Error deleting inactive employees:", error);
+  }
+});
 
 
 const createSchema = Joi.object({
