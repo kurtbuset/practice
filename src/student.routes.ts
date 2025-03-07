@@ -3,9 +3,11 @@ import { Employee } from "./entity/Employee";
 import Joi from "joi";
 
 import express, { Request, Response } from "express";
+import { EmployeeService } from "./service/EmployeeService";
+import { Project } from "./entity/Project";
 const employeeRouter = express.Router();
 
-employeeRouter.post('/api/employees', (req: Request, res: Response) => {
+employeeRouter.post('/api/employees', async (req: Request, res: Response) => {
   try{
     const { error, value } = createSchema.validate(req.body, {
       abortEarly: false,
@@ -27,6 +29,10 @@ employeeRouter.post('/api/employees', (req: Request, res: Response) => {
     });
 
     await employeeRepository.save(newEmployee);
+
+    const projectRepository = AppDataSource.getRepository(Project);
+    const employeeService = new EmployeeService(employeeRepository, projectRepository);
+    await employeeService.assignProjectToEmployee(1, 1); // employeeId, projectId
 
     res
       .status(201)
