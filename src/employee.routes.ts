@@ -71,9 +71,42 @@ employeeRouter.post("/api/employees", async (req: Request, res: Response) => {
 });
 
 // case 3
-employeeRouter.put('/api/employees/:id/salary', (req: Request, res: Response) => {
+employeeRouter.put('/api/employees/:id/salary', async(req: Request, res: Response) => {
   try{
+    const EmployeeRepository = AppDataSource.getRepository(Employee);
+    const EmployeeID = Number(req.params.id);
 
+    if (isNaN(EmployeeID)) {
+      return res.status(400).json({ msg: "Invalid Employee ID" });
+    }
+
+    const EmployeeToUpdate = await EmployeeRepository.findOneBy({
+      id: EmployeeID,
+    });
+
+    if (!EmployeeToUpdate) {
+      return res.status(404).json({ msg: "Employee not found" });
+    }
+
+    // Validate input
+    const { error, value } = updateSchema.validate(req.body, {
+      abortEarly: false,
+    });
+
+    if (error) {
+      return res
+        .status(400)
+        .json({ error: error.details.map((x) => x.message) });
+    }
+
+    // Update salary to 90000
+    EmployeeToUpdate.salary = 90000;
+
+    await EmployeeRepository.save(EmployeeToUpdate);
+
+    return res
+    .status(200)
+    .json({ message: `Employee ${EmployeeID} salary updated successfully to 90000` });
   }
   catch(error){
     console.error("Error updating employee:", error);
@@ -196,6 +229,7 @@ const createSchema = Joi.object({
   position: Joi.string().required(),
   departmentId: Joi.number().required()
 });
+
 
 
 export default employeeRouter;
