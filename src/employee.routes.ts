@@ -231,6 +231,12 @@ const createSchema = Joi.object({
   departmentId: Joi.number().required()
 });
 
-
+const updateSchema = Joi.object({
+  salary: Joi.number().required().positive().messages({
+    'number.base': 'Salary must be a number',
+    'number.positive': 'Salary must be a positive number',
+    'any.required': 'Salary is required',
+  }),
+});
 
 export default employeeRouter;
