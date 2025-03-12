@@ -4,7 +4,7 @@ import { Department } from "./entity/Department";
 import Joi from "joi";
 import cron from "node-cron";
 import { subMonths } from "date-fns";
-import { isHR } from './middlewares/isHR';
+
 
 import express, { Request, Response } from "express";
 import { LessThan } from "typeorm";
@@ -72,7 +72,7 @@ employeeRouter.post("/api/employees", async (req: Request, res: Response) => {
 });
 
 // case 3
-employeeRouter.put('/api/employees/:id/salary', isHR, async (req: Request, res: Response) => {
+employeeRouter.put('/api/employees/:id/salary', async (req: Request, res: Response) => {
   try {
     const EmployeeRepository = AppDataSource.getRepository(Employee);
     const EmployeeID = Number(req.params.id);
