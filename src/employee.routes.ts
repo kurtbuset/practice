@@ -5,6 +5,7 @@ import Joi from "joi";
 import cron from "node-cron";
 import { subMonths } from "date-fns";
 
+
 import express, { Request, Response } from "express";
 import { LessThan } from "typeorm";
 const employeeRouter = express.Router();
@@ -71,8 +72,8 @@ employeeRouter.post("/api/employees", async (req: Request, res: Response) => {
 });
 
 // case 3
-employeeRouter.put('/api/employees/:id/salary', async(req: Request, res: Response) => {
-  try{
+employeeRouter.put('/api/employees/:id/salary', async (req: Request, res: Response) => {
+  try {
     const EmployeeRepository = AppDataSource.getRepository(Employee);
     const EmployeeID = Number(req.params.id);
 
@@ -99,20 +100,20 @@ employeeRouter.put('/api/employees/:id/salary', async(req: Request, res: Respons
         .json({ error: error.details.map((x) => x.message) });
     }
 
-    // Update salary to 90000
-    EmployeeToUpdate.salary = 90000;
+    // Update salary based on the request body
+    const { salary } = req.body;
+    EmployeeToUpdate.salary = salary;
 
     await EmployeeRepository.save(EmployeeToUpdate);
 
     return res
-    .status(200)
-    .json({ message: `Employee ${EmployeeID} salary updated successfully to 90000` });
-  }
-  catch(error){
+      .status(200)
+      .json({ message: `Employee ${EmployeeID} salary updated successfully to ${salary}` });
+  } catch (error) {
     console.error("Error updating employee:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
-})
+});
 
 // case 4
 employeeRouter.delete('/api/employees/:id', async (req: Request, res: Response) => {
@@ -230,6 +231,12 @@ const createSchema = Joi.object({
   departmentId: Joi.number().required()
 });
 
-
+const updateSchema = Joi.object({
+  salary: Joi.number().required().positive().messages({
+    'number.base': 'Salary must be a number',
+    'number.positive': 'Salary must be a positive number',
+    'any.required': 'Salary is required',
+  }),
+});
 
 export default employeeRouter;
