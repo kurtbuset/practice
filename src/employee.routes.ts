@@ -139,6 +139,7 @@ employeeRouter.delete('/api/employees/:id', async (req: Request, res: Response) 
     return res.status(500).json({ error: "Internal server error" });
   }
 })
+
 // Case 5: 
 employeeRouter.get("/api/employees/search", async (req: Request, res: Response) => {
   try {
@@ -153,7 +154,7 @@ employeeRouter.get("/api/employees/search", async (req: Request, res: Response) 
 
    
     const employees = await employeeRepo.find({
-      where: { name: Like(`%${name}%`) },
+      where: { name: (`%${name}%`) },
       relations: ["department"],
     });
 
@@ -167,7 +168,7 @@ employeeRouter.get("/api/employees/search", async (req: Request, res: Response) 
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-// Case 6
+// Case 6: 
 employeeRouter.post('/api/employees/:id/projects', async (req: Request, res: Response) => {
   try {
     const employeeRepo = AppDataSource.getRepository(Employee);
@@ -176,11 +177,11 @@ employeeRouter.post('/api/employees/:id/projects', async (req: Request, res: Res
     const employeeId = Number(req.params.id);
     const { projectId } = req.body;
 
+
     if (isNaN(employeeId)) {
       return res.status(400).json({ error: "Invalid Employee ID" });
     }
 
- 
     if (!projectId || isNaN(projectId)) {
       return res.status(400).json({ error: "Invalid Project ID" });
     }
@@ -202,6 +203,7 @@ employeeRouter.post('/api/employees/:id/projects', async (req: Request, res: Res
       return res.status(404).json({ error: "Project not found" });
     }
 
+    // Assign project to employee
     if (!employee.projects) {
       employee.projects = [];
     }
@@ -218,7 +220,6 @@ employeeRouter.post('/api/employees/:id/projects', async (req: Request, res: Res
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-
 // case 7
 employeeRouter.get('/api/employees/:id/tenure', async (req: Request, res: Response) => {
   try{
