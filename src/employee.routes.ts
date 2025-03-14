@@ -8,6 +8,7 @@ import { subMonths } from "date-fns";
 
 
 import express, { Request, Response } from "express";
+
 import { LessThan } from "typeorm";
 const employeeRouter = express.Router();
 
@@ -189,6 +190,86 @@ employeeRouter.delete('/api/employees/:id', async (req: Request, res: Response) 
   }
 })
 
+// Case 5: 
+employeeRouter.get("/api/employees/search", async (req: Request, res: Response) => {
+  try {
+    const { name } = req.query;
+
+    
+    if (!name || typeof name !== "string") {
+      return res.status(400).json({ error: "Search term (name) is required and must be a string." });
+    }
+
+    const employeeRepo = AppDataSource.getRepository(Employee);
+
+   
+    const employees = await employeeRepo.find({
+      where: { name: (`%${name}%`) },
+      relations: ["department"],
+    });
+
+    if (employees.length === 0) {
+      return res.status(404).json({ message: "No employees found matching the search term." });
+    }
+
+    return res.status(200).json({ employees });
+  } catch (error) {
+    console.error("Error searching employees:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+// Case 6: 
+employeeRouter.post('/api/employees/:id/projects', async (req: Request, res: Response) => {
+  try {
+    const employeeRepo = AppDataSource.getRepository(Employee);
+    const projectRepo = AppDataSource.getRepository(Project);
+
+    const employeeId = Number(req.params.id);
+    const { projectId } = req.body;
+
+
+    if (isNaN(employeeId)) {
+      return res.status(400).json({ error: "Invalid Employee ID" });
+    }
+
+    if (!projectId || isNaN(projectId)) {
+      return res.status(400).json({ error: "Invalid Project ID" });
+    }
+
+    const employee = await employeeRepo.findOne({
+      where: { id: employeeId },
+      relations: ["projects"], // Load existing projects
+    });
+
+    if (!employee) {
+      return res.status(404).json({ error: "Employee not found" });
+    }
+
+    const project = await projectRepo.findOne({
+      where: { id: projectId },
+    });
+
+    if (!project) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    // Assign project to employee
+    if (!employee.projects) {
+      employee.projects = [];
+    }
+    employee.projects.push(project);
+
+    await employeeRepo.save(employee);
+
+    return res.status(200).json({
+      message: `Employee ${employeeId} assigned to project ${projectId}`,
+      employee,
+    });
+  } catch (error) {
+    console.error("Error assigning employee to project:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
 // case 7
 employeeRouter.get('/api/employees/:id/tenure', async (req: Request, res: Response) => {
   try{
