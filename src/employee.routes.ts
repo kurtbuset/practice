@@ -1,6 +1,7 @@
 import { AppDataSource } from "./_helpers/data-source";
 import { Employee } from "./entity/Employee";
 import { Department } from "./entity/Department";
+import { Project } from "./entity/Project";
 import Joi from "joi";
 import cron from "node-cron";
 import { subMonths } from "date-fns";
@@ -68,6 +69,55 @@ employeeRouter.post("/api/employees", async (req: Request, res: Response) => {
   catch(error){
     console.error("Error adding employee:", error);
     return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// case 6
+employeeRouter.post('/api/employees/:id/projects', async (req: Request, res: Response) => {
+  try {
+    const employeeId = parseInt(req.params.id);
+    const { projectId } = req.body;
+
+    if (!employeeId || !projectId) {
+      return res.status(400).json({ message: "Employee ID and Project ID are required" });
+    }
+
+    const employeeRepository = AppDataSource.getRepository(Employee);
+    const projectRepository = AppDataSource.getRepository(Project);
+
+    // Fetch both employee and project
+    const [employee, project] = await Promise.all([
+      employeeRepository.findOne({ where: { id: employeeId }, relations: ["projects"] }),
+      projectRepository.findOne({ where: { id: projectId } })
+    ]);
+
+    if (!employee) {
+      return res.status(404).json({ msg: "Employee not found" });
+    }
+
+    if (!project) {
+      return res.status(404).json({ msg: "Project not found" });
+    }
+
+    // Initialize projects array if undefined
+    if (!employee.projects) {
+      employee.projects = [];
+    }
+
+    // Check if the employee is already assigned to the project
+    const isAlreadyAssigned = employee.projects.some((p) => p.id === project.id);
+    if (isAlreadyAssigned) {
+      return res.status(400).json({ msg: "Employee is already assigned to this project" });
+    }
+
+    // Assign the project to the employee
+    employee.projects.push(project);
+    await employeeRepository.save(employee);
+
+    return res.status(200).json({ msg: "Project assigned successfully", employee });
+  } catch (error) {
+    console.error("Error assigning project:", error);
+    return res.status(500).json({ msg: "Internal Server Error", error });
   }
 });
 
