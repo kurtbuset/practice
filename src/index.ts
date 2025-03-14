@@ -1,16 +1,28 @@
 import express from 'express'
-import employeeRouter from './employee.routes'
-const app = express()
+import {employeeRouter} from './employee.routes'
+import {userRouter} from './employee.routes'
+import { AppDataSource } from "./_helpers/data-source";
 
-app.use(express.json())
+const app = express();
 
-app.use('', employeeRouter)
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
+app.use(employeeRouter);
+app.use(userRouter);
 
-app.listen(3000, () => {
-    console.log('Server running on port 3000')
-})
-
+AppDataSource.initialize()
+  .then(() => {
+    console.log("Data Source has been initialized!");
+    
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Error during Data Source initialization:", err);
+  });
 
 
 
