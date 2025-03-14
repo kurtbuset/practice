@@ -2,14 +2,101 @@ import { AppDataSource } from "./_helpers/data-source";
 import { Employee } from "./entity/Employee";
 import { Department } from "./entity/Department";
 import { Project } from "./entity/Project";
+import { User } from "./entity/User";
 import Joi from "joi";
 import cron from "node-cron";
 import { subMonths } from "date-fns";
+import bcrypt from "bcrypt";
 
 
 import express, { Request, Response } from "express";
 import { LessThan } from "typeorm";
 const employeeRouter = express.Router();
+const userRouter = express.Router();
+const userRepo = AppDataSource.getRepository(User);
+
+// user router
+userRouter.get("/api/users", async (req: Request, res: Response) => {
+  try {
+    const users = await userRepo.find({
+      select: ["id", "username", "email", "role"]
+    });
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+userRouter.post("/api/users", async (req: Request, res: Response) => {
+  try {
+  
+    const { error, value } = userSchema.validate(req.body, {
+      abortEarly: false,
+    });
+
+    if (error) {
+      return res
+        .status(400)
+        .json({ error: error.details.map((x) => x.message) });
+    }
+
+    const { username, password, email, role } = value;
+    
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    const newUser = userRepo.create({ 
+      username, 
+      password: hashedPassword, 
+      email,
+      role: role || "user"
+    });
+    
+    await userRepo.save(newUser);
+
+    res.status(201).json({ 
+      message: "User created successfully", 
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role
+      } 
+    });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+userRouter.put("/api/user/:id", async (req: Request, res: Response) => {
+  try {
+    const user = await userRepo.findOne({ where: { id: Number(req.params.id) } })
+    if (!user) return res.status(404).json({ message: "User not found" })
+
+    const { username } = req.body
+    user.username = username
+    await userRepo.save(user)
+
+    res.status(200).json({ message: "User updated successfully", user })
+  } catch (error) {
+    console.error("Error updating user:", error)
+    res.status(500).json({ error: "Internal server error" })
+  }
+});
+
+userRouter.delete("/api/user/:id", async (req: Request, res: Response) => {
+  try {
+    const user = await userRepo.findOne({ where: { id: Number(req.params.id) } })
+    if (!user) return res.status(404).json({ message: "User not found" })
+
+    await userRepo.remove(user)
+    res.status(200).json({ message: "User deleted successfully" })
+  } catch (error) {
+    console.error("Error deleting user:", error)
+    res.status(500).json({ error: "Internal server error" })
+  }
+});
 
 // case 2
 employeeRouter.get("/api/employees", async (req: Request, res: Response) => {
@@ -289,4 +376,11 @@ const updateSchema = Joi.object({
   }),
 });
 
-export default employeeRouter;
+const userSchema = Joi.object({
+  username: Joi.string().required(),
+  password: Joi.string().min(6).required(),
+  email: Joi.string().email().required(),
+  role: Joi.string().valid("user", "admin").default("user"),
+});
+
+export { userRouter, employeeRouter };

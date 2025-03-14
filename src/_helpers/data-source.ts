@@ -3,6 +3,7 @@ import { DataSource } from "typeorm";
 import { Employee } from "../entity/Employee";
 import { Department } from "../entity/Department";
 import { Project } from "../entity/Project";
+import { User } from "../entity/User";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -13,15 +14,7 @@ export const AppDataSource = new DataSource({
   database: "employee_management",
   synchronize: true,
   logging: false,
-  entities: [Employee, Department, Project],
+  entities: [Employee, Department, Project, User],
   migrations: [],
   subscribers: [],
 });
-
-AppDataSource.initialize()
-  .then(() => {
-    console.log("Data Source has been initialized!");
-  })
-  .catch((err) => {
-    console.error("Error during Data Source initialization:", err);
-  });
