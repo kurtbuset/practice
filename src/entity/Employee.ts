@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, ManyToMany, JoinTable } from "typeorm";
 import { Department } from "./Department";
+import { Project } from "./Project";
 
 @Entity()
 export class Employee {
@@ -23,4 +24,9 @@ export class Employee {
 
   @CreateDateColumn()
   hireDate!: Date;
+
+  @ManyToMany(() => Project, (project) => project.employees, { cascade: true })
+  @JoinTable()  // This creates a junction table automatically
+  projects: Project[] | undefined;
+
 }
