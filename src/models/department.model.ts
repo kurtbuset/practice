@@ -1,5 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from "typeorm";
-import { Employee } from "./Employee";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+} from "typeorm";
+import { Employee } from "./employee.model";
 
 @Entity()
 export class Department {
@@ -11,5 +17,4 @@ export class Department {
 
   @OneToMany(() => Employee, (employee) => employee.department)
   employees!: Employee[];
-
 }

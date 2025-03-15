@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, ManyToMany, JoinTable } from "typeorm";
-import { Department } from "./Department";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, OneToOne, ManyToMany, JoinTable } from "typeorm";
+import { Department } from "./department.model";
+import { User } from "./user.model";
 
 @Entity()
 export class Employee {
@@ -13,7 +14,7 @@ export class Employee {
   position!: string;
 
   @Column({ nullable: true })
-  salary!: number;
+  salary?: number;
 
   @ManyToOne(() => Department)
   department!: Department;
@@ -23,4 +24,7 @@ export class Employee {
 
   @CreateDateColumn()
   hireDate!: Date;
+
+  @OneToOne(() => User, (user) => user.employee)
+  user!: User;
 }

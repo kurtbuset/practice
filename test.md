@@ -1,2 +1,0 @@
-cagulang 
-trangia
