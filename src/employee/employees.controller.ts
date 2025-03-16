@@ -8,9 +8,13 @@ employeeRouter.get("", getEmployees);
 employeeRouter.post("", createEmployee);
 employeeRouter.delete("/:id", deleteEmployee);
 
-employeeRouter.get("/:id/tenure", getTenure);
-employeeRouter.put("/:id/transfer", transferEmployee)
-employeeRouter.post("/:id/salary", updateEmployeeSalary)
+employeeRouter.get("/search", getEmployeeByName); // specific routes first
+
+employeeRouter.get("/:id/tenure", getTenure); // dynamic routes after
+employeeRouter.post("/:id/projects", assignProject);
+employeeRouter.put("/:id/transfer", transferEmployee);
+employeeRouter.post("/:id/salary", updateEmployeeSalary);
+
 
 export default employeeRouter;
 
@@ -23,7 +27,7 @@ function getEmployees(req: Request, res: Response) {
     })
     .catch((err: any) => {
       res.status(400).json({ msg: err?.message || "unexpected error occured" });
-    }); 
+    });
 }
 
 // case 2
@@ -49,7 +53,7 @@ function createEmployee(req: Request, res: Response) {
 }
 
 // case 3
-function updateEmployeeSalary(req: Request, res: Response){
+function updateEmployeeSalary(req: Request, res: Response) {
   const { error, value } = updateSchema.validate(req.body, {
     abortEarly: false,
   });
@@ -58,13 +62,16 @@ function updateEmployeeSalary(req: Request, res: Response){
     return res.status(400).json({ error: error.details.map((x) => x.message) });
   }
 
-  employeeService.updateEmployeeSalary(Number(req.params.id), value)
-  .then(employee => {
-    res.status(201).json({ msg: 'Employee salary updated successfully', data: employee })
-  })
-  .catch((err: any) => {
-    res.status(500).json({ msg: err?.message || "unexpected error occured" });
-  })
+  employeeService
+    .updateEmployeeSalary(Number(req.params.id), value)
+    .then((employee) => {
+      res
+        .status(201)
+        .json({ msg: "Employee salary updated successfully", data: employee });
+    })
+    .catch((err: any) => {
+      res.status(500).json({ msg: err?.message || "unexpected error occured" });
+    });
 }
 
 // case 4
@@ -79,17 +86,40 @@ function deleteEmployee(req: Request, res: Response) {
     });
 }
 
-// case 7
-function getTenure(req: Request, res: Response) {
+// case 5
+function getEmployeeByName(req: Request, res: Response) {
+  const name = req.query.name as string;
+
+  if (!name)
+    return res.status(400).json({ msg: "name query parameter is required" });
+
   employeeService
-    .getTenure(Number(req.params.id))
-    .then((object) => {
+    .getEmployeeByName(name)
+    .then((employee) => {
+      res.status(200).json(employee);
+    })
+    .catch((err: any) => {
+      res.status(400).json({ msg: err?.message || "unexpected error occured" });
+    });
+}
+
+// case 6
+function assignProject(req: Request, res: Response) {
+  const employeeId = Number(req.params.id);
+  const { projectId } = req.body;
+
+  if (!projectId) {
+    return res.status(400).json({ msg: "Project ID is required" });
+  }
+
+  employeeService
+    .assignProject(employeeId, { projectId })
+    .then((employee) => {
       res
         .status(200)
         .json({
-          employeeId: object.employee.id,
-          name: object.employee.name,
-          yearsOfService: object.yearsOfService,
+          msg: `employee ${req.params.id} was assigned to handle project ${req.body.projectId}`,
+          projects: employee.projects,
         });
     })
     .catch((err: any) => {
@@ -97,12 +127,33 @@ function getTenure(req: Request, res: Response) {
     });
 }
 
+// case 7
+function getTenure(req: Request, res: Response) {
+  employeeService
+    .getTenure(Number(req.params.id))
+    .then((object) => {
+      res.status(200).json({
+        employeeId: object.employee.id,
+        name: object.employee.name,
+        yearsOfService: object.yearsOfService,
+      });
+    })
+    .catch((err: any) => {
+      res.status(400).json({ msg: err?.message || "unexpected error occured" });
+    });
+}
+
 // case 8
-function transferEmployee(req: Request, res: Response){
+function transferEmployee(req: Request, res: Response) {
   employeeService
     .transferEmployee(req.body.departmentId, Number(req.params.id))
-    .then(employee => {
-      res.status(201).json({ msg: "employee's department id successfully update", employee: employee})
+    .then((employee) => {
+      res
+        .status(201)
+        .json({
+          msg: "employee's department id successfully update",
+          employee: employee,
+        });
     })
     .catch((err: any) => {
       res.status(400).json({ msg: err?.message || "unexpected error occured" });
@@ -111,8 +162,8 @@ function transferEmployee(req: Request, res: Response){
 
 const updateSchema = Joi.object({
   salary: Joi.number().required().positive().messages({
-    'number.base': 'Salary must be a number',
-    'number.positive': 'Salary must be a positive number',
-    'any.required': 'Salary is required',
+    "number.base": "Salary must be a number",
+    "number.positive": "Salary must be a positive number",
+    "any.required": "Salary is required",
   }),
 });

@@ -2,15 +2,16 @@ import { DataSource } from "typeorm";
 import { Employee } from "../models/employee.model";
 import { Department } from "../models/department.model";
 import { User } from "../models/user.model";
+import { Project } from "../models/project.model";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
   host: "localhost",
   port: 3306,
-  username: "root",
+  username: "root", 
   password: "password",
   database: "employee_user_management",
-  entities: [Employee, Department, User],
+  entities: [Employee, Department, User, Project],
   logging: true,
   synchronize: true,
 });
@@ -18,7 +19,7 @@ export const AppDataSource = new DataSource({
 AppDataSource.initialize()
   .then((_) => {
     console.log("data source has been initialized.");
-  })
+  })  
   .catch((Error) => {
     console.log(`Error: ${Error}`);
   });

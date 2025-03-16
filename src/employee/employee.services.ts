@@ -1,10 +1,14 @@
+import { Like } from "typeorm";
 import { Employee } from "../models/employee.model";
 import { AppDataSource } from "../_helpers/db";
 import { Department } from "../models/department.model";
+import { appendFile } from "fs";
+import { Project } from "../models/project.model";
 
 export class EmployeeService {
   private employeeRepo = AppDataSource.getRepository(Employee);
   private departmentRepo = AppDataSource.getRepository(Department);
+  private projectRepo = AppDataSource.getRepository(Project)
 
   // case 1
   async getEmployees() {
@@ -15,7 +19,7 @@ export class EmployeeService {
           name: true,
           position: true,
           department: {
-            id: true,
+            id: true, 
             name: true,
           },
         },
@@ -109,11 +113,43 @@ export class EmployeeService {
   }
 
   // case 5
-  async() {}
+  async getEmployeeByName(name: string) {
+    try{
+      if(!name) throw new Error('name is required')
+
+      const employee = await this.employeeRepo.find({
+        where: { name: Like(`%${name}%`)}
+      })
+
+      if(!employee || employee.length === 0) throw new Error('employee not found')
+  
+      return employee
+    }
+    catch(err) {
+      console.error('Error: ', err)
+      throw err
+    }
+  }
 
   // case 6
-  async projectEmployee(id: number) {
+  async assignProject(id: number, data: { projectId: number}) {
     try {
+      const employee = await this.employeeRepo.findOne({
+        where: { id },
+        relations: ['projects']
+      })
+      if(!employee) throw new Error('no employee found')
+
+      const project = await this.projectRepo.findOneBy({
+        id: data.projectId
+      })
+      if(!project) throw new Error('no project found')
+
+      employee.projects = [...(employee.projects || []), project]
+
+      return await this.employeeRepo.save(employee)
+
+
     } catch (err) {
       console.error("Error: ", err);
       throw err;
