@@ -2,6 +2,7 @@ import { DataSource } from "typeorm";
 import { Employee } from "../models/employee.model";
 import { Department } from "../models/department.model";
 import { User } from "../models/user.model";
+import { Project } from "../models/project.model";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -10,7 +11,7 @@ export const AppDataSource = new DataSource({
   username: "root", 
   password: "password",
   database: "employee_user_management",
-  entities: [Employee, Department, User],
+  entities: [Employee, Department, User, Project],
   logging: true,
   synchronize: true,
 });

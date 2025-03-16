@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, OneToOne, ManyToMany, JoinTable } from "typeorm";
 import { Department } from "./department.model";
 import { User } from "./user.model";
+import { Project } from "./project.model";
 
 @Entity()
 export class Employee {
@@ -27,4 +28,8 @@ export class Employee {
 
   @OneToOne(() => User, (user) => user.employee)
   user!: User;
+
+  @ManyToMany(() => Project, (project) => project.employees, { cascade: true })
+  @JoinTable()
+  projects!: Project[];
 }
