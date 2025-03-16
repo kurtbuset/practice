@@ -19,7 +19,7 @@ export class Employee {
   @ManyToOne(() => Department)
   department!: Department;
 
-  @Column({ default: true })
+  @Column({ default: true })  
   isActive!: boolean;
 
   @CreateDateColumn()

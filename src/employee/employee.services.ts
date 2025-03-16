@@ -1,3 +1,4 @@
+import { Like } from "typeorm";
 import { Employee } from "../models/employee.model";
 import { AppDataSource } from "../_helpers/db";
 import { Department } from "../models/department.model";
@@ -15,7 +16,7 @@ export class EmployeeService {
           name: true,
           position: true,
           department: {
-            id: true,
+            id: true, 
             name: true,
           },
         },
@@ -109,7 +110,23 @@ export class EmployeeService {
   }
 
   // case 5
-  async() {}
+  async getEmployeeByName(name: string) {
+    try{
+      if(!name) throw new Error('name is required')
+
+      const employee = await this.employeeRepo.find({
+        where: { name: Like(`%${name}%`)}
+      })
+
+      if(!employee || employee.length === 0) throw new Error('employee not found')
+  
+      return employee
+    }
+    catch(err) {
+      console.error('Error: ', err)
+      throw err
+    }
+  }
 
   // case 6
   async projectEmployee(id: number) {

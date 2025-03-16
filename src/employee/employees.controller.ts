@@ -11,8 +11,9 @@ employeeRouter.delete("/:id", deleteEmployee);
 employeeRouter.get("/:id/tenure", getTenure);
 employeeRouter.put("/:id/transfer", transferEmployee)
 employeeRouter.post("/:id/salary", updateEmployeeSalary)
+employeeRouter.get('/search', getEmployeeByName)
 
-export default employeeRouter;
+export default employeeRouter;  
 
 // case 1
 function getEmployees(req: Request, res: Response) {
@@ -77,6 +78,21 @@ function deleteEmployee(req: Request, res: Response) {
     .catch((err: any) => {
       res.status(400).json({ msg: err?.message || "unexpected error occured" });
     });
+}
+
+// case 5
+function getEmployeeByName(req: Request, res: Response) {
+  const name = req.query.name as string
+  
+  if(!name) return res.status(400).json({ msg: 'name query parameter is required'})
+
+  employeeService.getEmployeeByName(name)
+  .then(employee => {
+    res.status(200).json(employee)
+  })
+  .catch((err: any) => {
+    res.status(400).json({ msg: err?.message || "unexpected error occured" });
+  });
 }
 
 // case 7

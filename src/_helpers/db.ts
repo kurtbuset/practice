@@ -7,7 +7,7 @@ export const AppDataSource = new DataSource({
   type: "mysql",
   host: "localhost",
   port: 3306,
-  username: "root",
+  username: "root", 
   password: "password",
   database: "employee_user_management",
   entities: [Employee, Department, User],
@@ -18,7 +18,7 @@ export const AppDataSource = new DataSource({
 AppDataSource.initialize()
   .then((_) => {
     console.log("data source has been initialized.");
-  })
+  })  
   .catch((Error) => {
     console.log(`Error: ${Error}`);
   });
